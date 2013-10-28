@@ -11,8 +11,6 @@ This Modules makes it easy to create a secure email user login with verification
 * Connect your own Database
 * Integrated mail service by `tcs_node_mail_client` ( uses AWS mail services )
 
-> TODO
-
 # Example
 
 ```js
