@@ -60,11 +60,22 @@ var UserStore = {
 		});
 	},
 	// implement the method to generate the activation mail content
-	getActivationMail: function( token, options, callback ){
-		_mail = {
-			subject: "Welcome to my app",
-			body: "Visit http://www.myapp.com/activation/" + token + " to activate your account." 
+	getMailContent: function( type, token, options, callback ){
+		switch( type ){
+			case "register":
+				_mail = {
+					subject: "Welcome to my app",
+					body: "Visit http://www.myapp.com/activation/" + token + " to activate your account." 
+				}
+				break;
+			case "forgot":
+				_mail = {
+					subject: "Reset your password for my app",
+					body: "Visit http://www.myapp.com/activation/" + token + " to change your account password." 
+				}
+				break;
 		}
+
 		return _mail
 	}
 }
@@ -145,10 +156,18 @@ to create the AuthApp call `new` with the configuared `UserStore` and the module
 
 * **bryptrounds** ( `Number` - *optional; default = `8`* ): The crypto strength. A higher number will cause 
 * **tokentimeout** ( `Number` - *optional; default = `604800` 7 days* ): Time in seconds until the token will expire. `0` for unlimited
+* **namespace** ( `String` - *optional; default = `tcsnodeauth`* ): The **redis** namespace to prefix all generated data.
+* **redis** ( `Object|RedisClient` ): The **redis** configuration. Could be an Object of Configuration or a allready existing instance of `RedisClient`.
+	* **host** ( `String` - *optional; default = `localhost`* ): The redis hostname
+	* **port** ( `Number` - *optional; default = `6379`* ): The redis port
+	* **options** ( `Object` - *optional* ): The redis connection options
 * **defaultsendermail** ( `String` - *optional* ): If defined, this mail will be used as default sender mail. It can always be overwritten by the `UserStore.???MailContent` methods.
 * **mailAppId** ( `String` ): The `tcs_node_mail_client` app id.
 * **mailConfig** ( `Object` ): The `tcs_node_mail_client` configuration.  
-Details: [tcs_mail_node_client]( https://github.com/mpneuried/tcs_mail_node_client ).
+  Details: [tcs_mail_node_client]( https://github.com/mpneuried/tcs_mail_node_client ).
+
+
+
 
 # Methods
 
@@ -173,17 +192,33 @@ This method make use of the `UserStore.getUserCredentials( email, callback )` Me
 
 Create a user login request.
 
-This method make use of the `UserStore.checkUserEmail( email, callback )` and `UserStore.getActivationMail( link, callback )` Methods.
+This method make use of the `UserStore.checkUserEmail( email, callback )` and `UserStore.getMailContent( type, link, options, callback )` Methods.
 
 ####Arguments:
 
 * **email** ( `String` ): The users email.
-* **[options]** ( `String|Number|Object` - *optional* ): Options to be used inside the `UserStore.getActivationMail` method.
+* **[options]** ( `String|Number|Object` - *optional* ): Options to be used inside the `UserStore.getMailContent` method.
 * **callback** ( `Function` ): The callback method.
 
 #### Parameter for `callback( error )`
 
 * **error** ( `String|Error|Object` ): A general error if the email already exists.
+
+## `AuthApp.forgotPassword( email [, options], callback )`
+
+Create a request to send a user forgot password mail.
+
+This method make use of the `UserStore.checkUserEmail( email, callback )` and `UserStore.getMailContent( type, link, options, callback )` Methods.
+
+####Arguments:
+
+* **email** ( `String` ): The users email.
+* **[options]** ( `String|Number|Object` - *optional* ): Options to be used inside the `UserStore.getMailContent` method.
+* **callback** ( `Function` ): The callback method.
+
+#### Parameter for `callback( error )`
+
+* **error** ( `String|Error|Object` ): A general error if somethis went wrong.
 
 ## `AuthApp.getToken( token, callback )`
 
@@ -259,12 +294,13 @@ Create a basic user with email and password.
 * **error** ( `String|Error|Object` ): A general error object wich will be passed through the `activate` Method.
 * **userData** ( `String|Number|Object` ): Additional data you can use after a successful login to create your session.
 
-## `UserStore.getActivationMail( token, options, callback )`
+## `UserStore.getMailContent( type, token, options, callback )`
 
-Get the content data for a activation mail.
+Get the content data for a mail.
 
 #### Arguments:
 
+* **type** ( `String` - *Enum[ `register`, `forgot` ]* ): The mail type. Can be a register mail or a password forgot mail.
 * **token** ( `String` ): The token generate your activation link in your Mail.
 * **options** ( `Any` ): The raw options data passed to `AuthApp.register()`. Intended to pass language data or other required information to your mail text generator.
 * **callback** ( `Function` ): The callback method.
