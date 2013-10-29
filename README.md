@@ -275,9 +275,10 @@ Check if a email is existent in your database.
 * **email** ( `String` ): The email to find.
 * **callback** ( `Function` ): The callback method.
 
-#### Parameter for `callback( error )`
+#### Parameter for `callback( error, exists )`
 
-* **error** ( `String|Error|Object` ): A "not found" error if the email has not been found.
+* **error** ( `String|Error|Object` ): A general error object wich will be passed through the calling Method.
+* **exists** ( `Boolean` ): `true` if the email allready exists and `false` if not.
 
 ## `UserStore.setUserCredentials( email, passwordcypt, callback )`
 
