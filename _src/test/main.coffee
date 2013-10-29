@@ -122,11 +122,35 @@ describe "=== MAIN TESTS === ", ->
 				return
 			return
 
+	_mailA = "test@example.com"
+	testTokens = {}
+
 	describe "- Regsiter -", ->
 
 		it "register", ( done )->
-			auth.register "test@example.com",( err )->
+
+			auth.once "register", ( token, email )->
+				
+				email.should.equal( _mailA )
+				testTokens[ _mailA ] = token
+				done()
+				return
+
+			auth.register _mailA, ( err )->
 				should.not.exist( err )
+				return
+			return
+
+	describe "- Regsiter -", ->
+
+		it "register", ( done )->
+			auth.getToken testTokens[ _mailA ], ( err, tokenData )->
+				should.not.exist( err )
+
+				should.exist( tokenData )
+				tokenData.should.have.property( "email" ).with.equal( _mailA )
+				tokenData.should.have.property( "type" ).with.equal( "register" )
+				tokenData.should.have.property( "time" ).with.have.type( "number" ) 
 				done()
 				return
 			return

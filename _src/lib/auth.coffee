@@ -116,8 +116,6 @@ module.exports = class Auth extends require( "./basic" )
 			return
 
 		@tokenStore._getByToken( token, cb )
-
-		cb( null )
 		return
 
 	_activate: ( token, password, cb )=>
@@ -192,8 +190,8 @@ module.exports = class Auth extends require( "./basic" )
 
 					if mailData.body?.indexOf?( token ) >= 0
 						@emit "mail", email, mailData
-						@emit type, token, email
 						cb( null )
+						@emit type, token, email
 					else
 						@_handleError( cb, "EUSTOREMAILTOKEN" )
 					return

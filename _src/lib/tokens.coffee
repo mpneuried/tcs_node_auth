@@ -89,7 +89,7 @@ module.exports = class TokenStore extends require( "./basic" )
 		
 		rM = []
 		rM.push [ "LPUSH", _key, _token ]
-		rM.push [ "LTRIM", _key, 0, @config.maxUserTokens - 2 ]
+		rM.push [ "LTRIM", _key, 0, @config.maxUserTokens - 1 ]
 		rM.push [ "EXPIRE", _key, @config.tokentimeout ]
 
 		@redis.multi( rM ).exec ( err, results )=>

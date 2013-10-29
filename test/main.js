@@ -22,6 +22,7 @@
   };
 
   describe("=== MAIN TESTS === ", function() {
+    var testTokens, _mailA;
     describe("- Init -", function() {
       it("create auth app. UserStore with missing method.", function(done) {
         var _err;
@@ -125,10 +126,28 @@
         });
       });
     });
+    _mailA = "test@example.com";
+    testTokens = {};
     describe("- Regsiter -", function() {
       return it("register", function(done) {
-        auth.register("test@example.com", function(err) {
+        auth.once("register", function(token, email) {
+          email.should.equal(_mailA);
+          testTokens[_mailA] = token;
+          done();
+        });
+        auth.register(_mailA, function(err) {
           should.not.exist(err);
+        });
+      });
+    });
+    describe("- Regsiter -", function() {
+      return it("register", function(done) {
+        auth.getToken(testTokens[_mailA], function(err, tokenData) {
+          should.not.exist(err);
+          should.exist(tokenData);
+          tokenData.should.have.property("email")["with"].equal(_mailA);
+          tokenData.should.have.property("type")["with"].equal("register");
+          tokenData.should.have.property("time")["with"].have.type("number");
           done();
         });
       });
