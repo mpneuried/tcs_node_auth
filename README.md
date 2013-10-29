@@ -158,7 +158,7 @@ to create the AuthApp call `new` with the configuared `UserStore` and the module
 * **tokentimeout** ( `Number` - *optional; default = `604800` 7 days* ): Time in seconds until the token will expire. `0` for unlimited
 * **namespace** ( `String` - *optional; default = `tcsnodeauth`* ): The **redis** namespace to prefix all generated data.
 * **redis** ( `Object|RedisClient` ): The **redis** configuration. Could be an Object of Configuration or a allready existing instance of `RedisClient`.
-	* **host** ( `String` - *optional; default = `localhost`* ): The redis hostname
+	* **host** ( `String` - *optional; default = `127.0.0.1`* ): The redis hostname
 	* **port** ( `Number` - *optional; default = `6379`* ): The redis port
 	* **options** ( `Object` - *optional* ): The redis connection options
 * **defaultsendermail** ( `String` - *optional* ): If defined, this mail will be used as default sender mail. It can always be overwritten by the `UserStore.???MailContent` methods.

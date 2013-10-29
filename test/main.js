@@ -32,7 +32,7 @@
           _err = _error;
           should.exist(_err);
           should.exist(_err.name);
-          _err.name.should.equal("EMISSINGUSTOREMETHOD");
+          _err.name.should.equal("EUSTOREMISSINGMETHOD");
           done();
         }
       });
@@ -45,7 +45,7 @@
           _err = _error;
           should.exist(_err);
           should.exist(_err.name);
-          _err.name.should.equal("EMISSINGUSTOREMETHOD");
+          _err.name.should.equal("EUSTOREMISSINGMETHOD");
           done();
         }
       });
@@ -60,7 +60,7 @@
         auth.login(null, "test", function(err, userData) {
           should.exist(err);
           should.exist(err.name);
-          err.name.should.equal("ELOGINMISSINGMAIL");
+          err.name.should.equal("EMISSINGMAIL");
           should.not.exist(userData);
           done();
         });
@@ -69,7 +69,7 @@
         auth.login("cortezwaters@example.com", null, function(err, userData) {
           should.exist(err);
           should.exist(err.name);
-          err.name.should.equal("ELOGINMISSINGPASSWORD");
+          err.name.should.equal("EMISSINGPASSWORD");
           should.not.exist(userData);
           done();
         });
@@ -121,6 +121,14 @@
           should.not.exist(err);
           should.exist(userData);
           userData.name.should.equal("Cortez Waters");
+          done();
+        });
+      });
+    });
+    describe("- Regsiter -", function() {
+      return it("register", function(done) {
+        auth.register("test@example.com", function(err) {
+          should.not.exist(err);
           done();
         });
       });

@@ -31,7 +31,7 @@ module.exports = (grunt) ->
 			options:
 				require: [ "should" ]
 				reporter: "spec"
-				bail: false
+				bail: true
 				timeout: 5000
 				slow: 1
 

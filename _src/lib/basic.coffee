@@ -16,7 +16,7 @@ module.exports = class Basic extends require('events').EventEmitter
 	# **defaults** *Function* basic object to hold config defaults. Will be overwritten by the constructor options
 	defaults: =>
 		logging:
-			severity: "warning"
+			severity: "debug"
 			severitys: "fatal,error,warning,info,debug".split( "," )
 
 	###	
@@ -110,6 +110,17 @@ module.exports = class Basic extends require('events').EventEmitter
 	setter: ( prop, fnGet )=>
 		Object.defineProperty @, prop, set: fnGet
 		return	
+
+	_waitUntilReady: ( method )=>
+		return =>
+			args = arguments
+			if @ready
+				method.apply( @, args )
+			else
+				@once "ready", =>
+					method.apply( @, args )
+					return
+			return
 
 	# handle a error
 	###

@@ -22,7 +22,7 @@ describe "=== MAIN TESTS === ", ->
 			catch _err
 				should.exist( _err )
 				should.exist( _err.name )
-				_err.name.should.equal( "EMISSINGUSTOREMETHOD" )
+				_err.name.should.equal( "EUSTOREMISSINGMETHOD" )
 				done()
 			return
 
@@ -33,7 +33,7 @@ describe "=== MAIN TESTS === ", ->
 			catch _err
 				should.exist( _err )
 				should.exist( _err.name )
-				_err.name.should.equal( "EMISSINGUSTOREMETHOD" )
+				_err.name.should.equal( "EUSTOREMISSINGMETHOD" )
 				done()
 			return
 
@@ -49,7 +49,7 @@ describe "=== MAIN TESTS === ", ->
 			auth.login null, "test", ( err, userData )->
 				should.exist( err )
 				should.exist( err.name )
-				err.name.should.equal( "ELOGINMISSINGMAIL" )
+				err.name.should.equal( "EMISSINGMAIL" )
 
 				should.not.exist( userData )
 				done()
@@ -60,7 +60,7 @@ describe "=== MAIN TESTS === ", ->
 			auth.login "cortezwaters@example.com", null, ( err, userData )->
 				should.exist( err )
 				should.exist( err.name )
-				err.name.should.equal( "ELOGINMISSINGPASSWORD" )
+				err.name.should.equal( "EMISSINGPASSWORD" )
 
 				should.not.exist( userData )
 				done()
@@ -118,6 +118,15 @@ describe "=== MAIN TESTS === ", ->
 				
 				should.exist( userData )
 				userData.name.should.equal( "Cortez Waters" )
+				done()
+				return
+			return
+
+	describe "- Regsiter -", ->
+
+		it "register", ( done )->
+			auth.register "test@example.com",( err )->
+				should.not.exist( err )
 				done()
 				return
 			return

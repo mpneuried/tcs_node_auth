@@ -7,9 +7,9 @@ class DummyDB
 	# Dummy db methods
 	has: ( query, cb )=>
 		if _.some( @coll, query )
-			cb( null )
+			cb( null, true )
 		else
-			cb( new Error( "not-found" ) )
+			cb( null, false )
 		return
 
 	filter: ( query, cb )=>
@@ -54,15 +54,16 @@ class DefektUserStore extends DummyDB
 		return
 
 class DummyUserStore extends DefektUserStore
-	getActivationMail: ( token, options, cb )=>
-		mailData = 
-			subject: "Test activation"
-		if options.testMissingLink?
+	getMailContent: ( type ,token, options, cb )=>
+		switch type
+			when "register" then mailData = { subject: "Test activation" }
+			when "forgot" then mailData = { subject: "Test activation" }
+		if options?.testMissingLink?
 			mailData.body = "Body without token should cause an error."
 		else
-			mailData.body = "Follow http://www.test.com/#{token} to activate your account."
+			mailData.body = "Follow http://www.test.com/#{token} to set your password."
 
-		cb( err, mailData )
+		cb( null, mailData )
 		return
 
 class NotFunctionUserStore extends DefektUserStore

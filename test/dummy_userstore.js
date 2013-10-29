@@ -17,9 +17,9 @@
 
     DummyDB.prototype.has = function(query, cb) {
       if (_.some(this.coll, query)) {
-        cb(null);
+        cb(null, true);
       } else {
-        cb(new Error("not-found"));
+        cb(null, false);
       }
     };
 
@@ -96,22 +96,30 @@
     __extends(DummyUserStore, _super);
 
     function DummyUserStore() {
-      this.getActivationMail = __bind(this.getActivationMail, this);
+      this.getMailContent = __bind(this.getMailContent, this);
       _ref1 = DummyUserStore.__super__.constructor.apply(this, arguments);
       return _ref1;
     }
 
-    DummyUserStore.prototype.getActivationMail = function(token, options, cb) {
+    DummyUserStore.prototype.getMailContent = function(type, token, options, cb) {
       var mailData;
-      mailData = {
-        subject: "Test activation"
-      };
-      if (options.testMissingLink != null) {
+      switch (type) {
+        case "register":
+          mailData = {
+            subject: "Test activation"
+          };
+          break;
+        case "forgot":
+          mailData = {
+            subject: "Test activation"
+          };
+      }
+      if ((options != null ? options.testMissingLink : void 0) != null) {
         mailData.body = "Body without token should cause an error.";
       } else {
-        mailData.body = "Follow http://www.test.com/" + token + " to activate your account.";
+        mailData.body = "Follow http://www.test.com/" + token + " to set your password.";
       }
-      cb(err, mailData);
+      cb(null, mailData);
     };
 
     return DummyUserStore;
