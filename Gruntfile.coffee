@@ -33,7 +33,7 @@ module.exports = (grunt) ->
 				reporter: "spec"
 				bail: true
 				timeout: 5000
-				slow: 1
+				slow: 10
 				env: 
 					debug: ""
 
