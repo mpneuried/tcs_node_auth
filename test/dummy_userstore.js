@@ -84,7 +84,7 @@
           cb(err);
           return;
         }
-        cb(dbUser);
+        cb(null, dbUser);
       });
     };
 
@@ -111,7 +111,7 @@
           break;
         case "forgot":
           mailData = {
-            subject: "Test activation"
+            subject: "Test password forgot"
           };
       }
       if ((options != null ? options.testMissingLink : void 0) != null) {

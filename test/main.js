@@ -14,15 +14,14 @@
   auth = null;
 
   config = {
-    mailAppId: "testing",
+    mailAppId: "testapp",
     mailConfig: {
-      sendermail: "auth@example.com",
       simulate: true
     }
   };
 
   describe("=== MAIN TESTS === ", function() {
-    var testTokens, _mailA;
+    var testTokens, _mailTestF, _mailTestL, _mailTestR;
     describe("- Init -", function() {
       it("create auth app. UserStore with missing method.", function(done) {
         var _err;
@@ -56,6 +55,7 @@
         done();
       });
     });
+    _mailTestL = "cortezwaters@example.com";
     describe("- Login -", function() {
       it("login with missing empty `email`", function(done) {
         auth.login(null, "test", function(err, userData) {
@@ -67,7 +67,7 @@
         });
       });
       it("login with missing empty `passowrd`", function(done) {
-        auth.login("cortezwaters@example.com", null, function(err, userData) {
+        auth.login(_mailTestL, null, function(err, userData) {
           should.exist(err);
           should.exist(err.name);
           err.name.should.equal("EMISSINGPASSWORD");
@@ -85,7 +85,7 @@
         });
       });
       it("login with wrong `passowrd`", function(done) {
-        auth.login("cortezwaters@example.com", "abc", function(err, userData) {
+        auth.login(_mailTestL, "abc", function(err, userData) {
           should.exist(err);
           should.exist(err.name);
           err.name.should.equal("ELOGINFAILED");
@@ -101,7 +101,7 @@
           afns.push(function(cba) {
             var _start;
             _start = Date.now();
-            auth.login("cortezwaters@example.com", "abc", function(err, userData) {
+            auth.login(_mailTestL, "abc", function(err, userData) {
               should.exist(err);
               should.exist(err.name);
               err.name.should.equal("ELOGINFAILED");
@@ -118,7 +118,7 @@
         });
       });
       return it("login", function(done) {
-        auth.login("cortezwaters@example.com", "test", function(err, userData) {
+        auth.login(_mailTestL, "test", function(err, userData) {
           should.not.exist(err);
           should.exist(userData);
           userData.name.should.equal("Cortez Waters");
@@ -126,28 +126,163 @@
         });
       });
     });
-    _mailA = "test@example.com";
     testTokens = {};
+    _mailTestR = "testR@example.com";
     describe("- Regsiter -", function() {
-      return it("register", function(done) {
-        auth.once("register", function(token, email) {
-          email.should.equal(_mailA);
-          testTokens[_mailA] = token;
+      it("register with existing mail", function(done) {
+        auth.register(_mailTestL, function(err) {
+          should.exist(err);
+          should.exist(err.name);
+          err.name.should.equal("EMAILINVALID");
           done();
         });
-        auth.register(_mailA, function(err) {
+      });
+      it("register empty mail", function(done) {
+        auth.register(null, function(err) {
+          should.exist(err);
+          should.exist(err.name);
+          err.name.should.equal("EMISSINGMAIL");
+          done();
+        });
+      });
+      return it("register", function(done) {
+        auth.once("register", function(token, email) {
+          email.should.equal(_mailTestR);
+          testTokens[_mailTestR] = token;
+          done();
+        });
+        auth.register(_mailTestR, function(err) {
           should.not.exist(err);
         });
       });
     });
-    describe("- Regsiter -", function() {
-      return it("register", function(done) {
-        auth.getToken(testTokens[_mailA], function(err, tokenData) {
+    describe("- Get Token -", function() {
+      it("token = `null`", function(done) {
+        auth.getToken(null, function(err) {
+          should.exist(err);
+          should.exist(err.name);
+          err.name.should.equal("EMISSINGTOKEN");
+          done();
+        });
+      });
+      it("empty token", function(done) {
+        auth.getToken("", function(err) {
+          should.exist(err);
+          should.exist(err.name);
+          err.name.should.equal("EMISSINGTOKEN");
+          done();
+        });
+      });
+      it("unkonwn token", function(done) {
+        auth.getToken("123456789", function(err) {
+          should.exist(err);
+          should.exist(err.name);
+          err.name.should.equal("ETOKENNOTFOUND");
+          done();
+        });
+      });
+      return it("getToken", function(done) {
+        auth.getToken(testTokens[_mailTestR], function(err, tokenData) {
           should.not.exist(err);
           should.exist(tokenData);
-          tokenData.should.have.property("email")["with"].equal(_mailA);
+          tokenData.should.have.property("email")["with"].equal(_mailTestR);
           tokenData.should.have.property("type")["with"].equal("register");
           tokenData.should.have.property("time")["with"].have.type("number");
+          done();
+        });
+      });
+    });
+    _mailTestF = "krissanford@example.com";
+    describe("- Forgot Password -", function() {
+      it("forgot with not existing mail", function(done) {
+        auth.forgot("unknown@example.com", function(err) {
+          should.exist(err);
+          should.exist(err.name);
+          err.name.should.equal("EMAILINVALID");
+          done();
+        });
+      });
+      it("forgot mail = `null`", function(done) {
+        auth.forgot(null, function(err) {
+          should.exist(err);
+          should.exist(err.name);
+          err.name.should.equal("EMISSINGMAIL");
+          done();
+        });
+      });
+      it("forgot empty mail", function(done) {
+        auth.forgot("", function(err) {
+          should.exist(err);
+          should.exist(err.name);
+          err.name.should.equal("EMISSINGMAIL");
+          done();
+        });
+      });
+      return it("forgot password", function(done) {
+        auth.once("forgot", function(token, email) {
+          email.should.equal(_mailTestF);
+          testTokens[_mailTestF] = token;
+          done();
+        });
+        auth.forgot(_mailTestF, function(err, tokenData) {
+          should.not.exist(err);
+        });
+      });
+    });
+    describe("- Activate -", function() {
+      it("not existing token", function(done) {
+        auth.activate("123456789", "testpw", function(err) {
+          should.exist(err);
+          should.exist(err.name);
+          err.name.should.equal("ETOKENNOTFOUND");
+          done();
+        });
+      });
+      it("empty token", function(done) {
+        auth.activate("", "testpw", function(err) {
+          should.exist(err);
+          should.exist(err.name);
+          err.name.should.equal("EMISSINGTOKEN");
+          done();
+        });
+      });
+      it("token = `null`", function(done) {
+        auth.activate("", "testpw", function(err) {
+          should.exist(err);
+          should.exist(err.name);
+          err.name.should.equal("EMISSINGTOKEN");
+          done();
+        });
+      });
+      it("empty password", function(done) {
+        auth.activate(testTokens[_mailTestR], "", function(err) {
+          should.exist(err);
+          should.exist(err.name);
+          err.name.should.equal("EMISSINGPASSWORD");
+          done();
+        });
+      });
+      it("password = `null`", function(done) {
+        auth.activate(testTokens[_mailTestR], "", function(err) {
+          should.exist(err);
+          should.exist(err.name);
+          err.name.should.equal("EMISSINGPASSWORD");
+          done();
+        });
+      });
+      it("activate", function(done) {
+        auth.activate(testTokens[_mailTestR], "testpw", function(err, userData) {
+          should.not.exist(err);
+          should.exist(userData);
+          userData.should.have.property("email")["with"].equal(_mailTestR);
+          done();
+        });
+      });
+      return it("login for activated account", function(done) {
+        auth.login(_mailTestR, "testpw", function(err, userData) {
+          should.not.exist(err);
+          should.exist(userData);
+          userData.email.should.equal(_mailTestR);
           done();
         });
       });

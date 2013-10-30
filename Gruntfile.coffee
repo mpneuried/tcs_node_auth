@@ -34,6 +34,8 @@ module.exports = (grunt) ->
 				bail: true
 				timeout: 5000
 				slow: 1
+				env: 
+					debug: ""
 
 			main: [ "test/main.js" ]
 

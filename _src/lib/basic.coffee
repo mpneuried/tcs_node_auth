@@ -5,7 +5,6 @@ colors = require('colors')
 
 # # Basic Module
 # ### extends [EventEmitter]
-
 # Basic module to handle errors and initialize modules
 module.exports = class Basic extends require('events').EventEmitter
 	# ## internals
@@ -15,8 +14,9 @@ module.exports = class Basic extends require('events').EventEmitter
 
 	# **defaults** *Function* basic object to hold config defaults. Will be overwritten by the constructor options
 	defaults: =>
+		_envDebug = process.env.debug.split( "," )
 		logging:
-			severity: "debug"
+			severity: ( if "_all" in _envDebug or @constructor.name in _envDebug then "debug" else "warning" )
 			severitys: "fatal,error,warning,info,debug".split( "," )
 
 	###	

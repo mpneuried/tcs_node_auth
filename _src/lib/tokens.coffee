@@ -3,7 +3,7 @@ crypto = require( "./crypto" )
 
 module.exports = class TokenStore extends require( "./basic" )
 	defaults: =>
-		return @extend true, super,
+		return @extend true, {}, super,
 			namespace: "tcsnodeauth"
 			tokenAlgorithm: "des3"
 			tokenPwKey: "TOKENCIPHER"

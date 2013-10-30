@@ -8,12 +8,11 @@ DummyUserStores = require( "./dummy_userstore" )
 auth = null
 
 config = 
-	mailAppId: "testing"
-	mailConfig: 
-		sendermail: "auth@example.com"
+	mailAppId: "testapp"
+	mailConfig:
 		simulate: true
 
-describe "=== MAIN TESTS === ", ->
+describe "=== MAIN TESTS === ", ->	
 	describe "- Init -", ->
 		it "create auth app. UserStore with missing method.", ( done )->
 			try
@@ -43,6 +42,8 @@ describe "=== MAIN TESTS === ", ->
 			done()
 			return
 
+	_mailTestL = "cortezwaters@example.com"
+
 	describe "- Login -", ->
 
 		it "login with missing empty `email`", ( done )->
@@ -57,7 +58,7 @@ describe "=== MAIN TESTS === ", ->
 			return
 
 		it "login with missing empty `passowrd`", ( done )->
-			auth.login "cortezwaters@example.com", null, ( err, userData )->
+			auth.login _mailTestL, null, ( err, userData )->
 				should.exist( err )
 				should.exist( err.name )
 				err.name.should.equal( "EMISSINGPASSWORD" )
@@ -79,7 +80,7 @@ describe "=== MAIN TESTS === ", ->
 			return
 
 		it "login with wrong `passowrd`", ( done )->
-			auth.login "cortezwaters@example.com", "abc", ( err, userData )->
+			auth.login _mailTestL, "abc", ( err, userData )->
 				should.exist( err )
 				should.exist( err.name )
 				err.name.should.equal( "ELOGINFAILED" )
@@ -95,7 +96,7 @@ describe "=== MAIN TESTS === ", ->
 			for i in [1..10]
 				afns.push ( cba )->
 					_start = Date.now()
-					auth.login "cortezwaters@example.com", "abc", ( err, userData )->
+					auth.login _mailTestL, "abc", ( err, userData )->
 						should.exist( err )
 						should.exist( err.name )
 						err.name.should.equal( "ELOGINFAILED" )
@@ -113,7 +114,7 @@ describe "=== MAIN TESTS === ", ->
 			return
 
 		it "login", ( done )->
-			auth.login "cortezwaters@example.com", "test", ( err, userData )->
+			auth.login _mailTestL, "test", ( err, userData )->
 				should.not.exist( err )
 				
 				should.exist( userData )
@@ -122,35 +123,193 @@ describe "=== MAIN TESTS === ", ->
 				return
 			return
 
-	_mailA = "test@example.com"
 	testTokens = {}
 
+	_mailTestR = "testR@example.com"
+
 	describe "- Regsiter -", ->
+
+		it "register with existing mail", ( done )->
+			auth.register _mailTestL, ( err )->
+				should.exist( err )
+				should.exist( err.name )
+				err.name.should.equal( "EMAILINVALID" )
+				done()
+				return
+			return
+
+		it "register empty mail", ( done )->
+			auth.register null, ( err )->
+				should.exist( err )
+				should.exist( err.name )
+				err.name.should.equal( "EMISSINGMAIL" )
+				done()
+				return
+			return
 
 		it "register", ( done )->
 
 			auth.once "register", ( token, email )->
-				
-				email.should.equal( _mailA )
-				testTokens[ _mailA ] = token
+
+				email.should.equal( _mailTestR )
+				testTokens[ _mailTestR ] = token
 				done()
 				return
 
-			auth.register _mailA, ( err )->
+			auth.register _mailTestR, ( err )->
 				should.not.exist( err )
 				return
 			return
 
-	describe "- Regsiter -", ->
+	describe "- Get Token -", ->
 
-		it "register", ( done )->
-			auth.getToken testTokens[ _mailA ], ( err, tokenData )->
+		it "token = `null`", ( done )->
+			auth.getToken null, ( err )->
+				should.exist( err )
+				should.exist( err.name )
+				err.name.should.equal( "EMISSINGTOKEN" )
+				done()
+				return
+			return
+
+		it "empty token", ( done )->
+			auth.getToken "", ( err )->
+				should.exist( err )
+				should.exist( err.name )
+				err.name.should.equal( "EMISSINGTOKEN" )
+				done()
+				return
+			return
+
+		it "unkonwn token", ( done )->
+			auth.getToken "123456789", ( err )->
+				should.exist( err )
+				should.exist( err.name )
+				err.name.should.equal( "ETOKENNOTFOUND" )
+				done()
+				return
+			return
+
+		it "getToken", ( done )->
+			auth.getToken testTokens[ _mailTestR ], ( err, tokenData )->
 				should.not.exist( err )
 
 				should.exist( tokenData )
-				tokenData.should.have.property( "email" ).with.equal( _mailA )
+				tokenData.should.have.property( "email" ).with.equal( _mailTestR )
 				tokenData.should.have.property( "type" ).with.equal( "register" )
 				tokenData.should.have.property( "time" ).with.have.type( "number" ) 
+				done()
+				return
+			return
+
+	_mailTestF = "krissanford@example.com"
+
+	describe "- Forgot Password -", ->
+
+		it "forgot with not existing mail", ( done )->
+			auth.forgot "unknown@example.com", ( err )->
+				should.exist( err )
+				should.exist( err.name )
+				err.name.should.equal( "EMAILINVALID" )
+				done()
+				return
+			return
+
+		it "forgot mail = `null`", ( done )->
+			auth.forgot null, ( err )->
+				should.exist( err )
+				should.exist( err.name )
+				err.name.should.equal( "EMISSINGMAIL" )
+				done()
+				return
+			return
+
+		it "forgot empty mail", ( done )->
+			auth.forgot "", ( err )->
+				should.exist( err )
+				should.exist( err.name )
+				err.name.should.equal( "EMISSINGMAIL" )
+				done()
+				return
+			return
+
+		it "forgot password", ( done )->
+
+			auth.once "forgot", ( token, email )->
+				email.should.equal( _mailTestF )
+				testTokens[ _mailTestF ] = token
+				done()
+				return
+
+			auth.forgot _mailTestF, ( err, tokenData )->
+				should.not.exist( err )
+				return
+			return
+
+	describe "- Activate -", ->
+
+		it "not existing token", ( done )->
+			auth.activate "123456789", "testpw", ( err )->
+				should.exist( err )
+				should.exist( err.name )
+				err.name.should.equal( "ETOKENNOTFOUND" )
+				done()
+				return
+			return
+
+		it "empty token", ( done )->
+			auth.activate "", "testpw", ( err )->
+				should.exist( err )
+				should.exist( err.name )
+				err.name.should.equal( "EMISSINGTOKEN" )
+				done()
+				return
+			return
+
+		it "token = `null`", ( done )->
+			auth.activate "", "testpw", ( err )->
+				should.exist( err )
+				should.exist( err.name )
+				err.name.should.equal( "EMISSINGTOKEN" )
+				done()
+				return
+			return
+
+		it "empty password", ( done )->
+			auth.activate testTokens[ _mailTestR ], "", ( err )->
+				should.exist( err )
+				should.exist( err.name )
+				err.name.should.equal( "EMISSINGPASSWORD" )
+				done()
+				return
+			return
+
+		it "password = `null`", ( done )->
+			auth.activate testTokens[ _mailTestR ], "", ( err )->
+				should.exist( err )
+				should.exist( err.name )
+				err.name.should.equal( "EMISSINGPASSWORD" )
+				done()
+				return
+			return
+
+		it "activate", ( done )->
+			auth.activate testTokens[ _mailTestR ], "testpw", ( err, userData )->
+				should.not.exist( err )
+
+				should.exist( userData )
+				userData.should.have.property( "email" ).with.equal( _mailTestR )
+				done()
+				return
+			return
+
+			
+		it "login for activated account", ( done )->
+			auth.login _mailTestR, "testpw", ( err, userData )->
+				should.not.exist( err )
+				
+				should.exist( userData )
+				userData.email.should.equal( _mailTestR )
 				done()
 				return
 			return

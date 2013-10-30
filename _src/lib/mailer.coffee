@@ -12,7 +12,7 @@ module.exports = class Mailer extends require( "./basic" )
 		return
 
 	initialize: =>
-
+		
 		if not @config.mailAppId
 			@_handleError( "INIT", "EMAILERNOCONFIG" )
 			return

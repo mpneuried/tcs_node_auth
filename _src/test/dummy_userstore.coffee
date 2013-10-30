@@ -49,7 +49,7 @@ class DefektUserStore extends DummyDB
 			if err
 				cb( err )
 				return
-			cb( dbUser )
+			cb( null, dbUser )
 			return
 		return
 
@@ -57,7 +57,7 @@ class DummyUserStore extends DefektUserStore
 	getMailContent: ( type ,token, options, cb )=>
 		switch type
 			when "register" then mailData = { subject: "Test activation" }
-			when "forgot" then mailData = { subject: "Test activation" }
+			when "forgot" then mailData = { subject: "Test password forgot" }
 		if options?.testMissingLink?
 			mailData.body = "Body without token should cause an error."
 		else

@@ -9,7 +9,7 @@ Mailer = require( "./mailer" )
 module.exports = class Auth extends require( "./basic" )
 
 	defaults: =>
-		return @extend true, super,
+		return @extend true, {}, super,
 			bryptrounds: 8
 			mailAppId: null
 			mailConfig: {}
@@ -29,7 +29,7 @@ module.exports = class Auth extends require( "./basic" )
 		@initTokenStore = @_waitForConnection( @_initTokenStore )
 		@initTokenStore()
 
-		@mailer = new Mailer( @, @config )		
+		@mailer = new Mailer( @, _.omit( @config, [ "logging" ] ) )		
 		return
 
 	_waitForConnection: ( method )=>
@@ -67,7 +67,7 @@ module.exports = class Auth extends require( "./basic" )
 
 	_initTokenStore: =>
 		@ready = false
-		@tokenStore = new TokenStore( @redis, @config )
+		@tokenStore = new TokenStore( @redis, _.omit( @config, [ "logging" ] ) )
 		@tokenStore.on "ready", =>
 			@ready = true
 			@emit( "ready" )
@@ -130,6 +130,7 @@ module.exports = class Auth extends require( "./basic" )
 			if err
 				cb( err )
 				return
+			@debug "got token", tokenData
 
 			salt = bcrypt.genSaltSync( @config.bryptrounds )
 			_cryptpassword = bcrypt.hashSync( password, salt )
@@ -138,11 +139,13 @@ module.exports = class Auth extends require( "./basic" )
 				if err
 					cb( err ) 
 					return
+				@debug "created user `#{tokenData.email}` by token `#{token}`"
 
 				@tokenStore.remove tokenData.email, ( err )=>
 					if err 
 						cb( err )
 						return
+					@debug "activated mail `#{tokenData.email}` with token `#{token}`"
 					cb( null, userData )
 					return
 				return
@@ -173,9 +176,13 @@ module.exports = class Auth extends require( "./basic" )
 			if err
 				@_handleError( cb, err )
 				return
-			if exists
+			if type is "register" and exists
 				@warning "mail `#{email}` exists"
-				@_handleError( cb, "EMAILNOTALLOWED", email: email )
+				@_handleError( cb, "EMAILINVALID", email: email )
+				return
+			else if type is "forgot" and not exists
+				@warning "mail `#{email}` not exists"
+				@_handleError( cb, "EMAILINVALID", email: email )
 				return
 
 			@tokenStore.create type, email, ( err, token )=>
@@ -189,9 +196,11 @@ module.exports = class Auth extends require( "./basic" )
 						return
 
 					if mailData.body?.indexOf?( token ) >= 0
-						@emit "mail", email, mailData
-						cb( null )
-						@emit type, token, email
+						@emit "mail", email, mailData, ( err )=>
+							@debug "created token `#{token}` of type `#{type}` for mail `#{email}`"
+							cb( null )
+							@emit type, token, email
+							return
 					else
 						@_handleError( cb, "EUSTOREMAILTOKEN" )
 					return
@@ -221,7 +230,7 @@ module.exports = class Auth extends require( "./basic" )
 			"EMISSINGMAIL": "To invoke a `<%= method %>` you have to define the email argument."
 			"EMISSINGPASSWORD": "To invoke a `<%= method %>`you have to define the password argument."
 			"EMISSINGTOKEN": "To invoke a `<%= method %>`you have to define the token argument."
-			"EMAILNOTALLOWED": "The given mail `<%= mail %>` is not allowed."
+			"EMAILINVALID": "The given mail `<%= email %>` is not allowed."
 			"EUSTOREMISSINGMETHOD": "Missing method `<%= method %>` in UserStore"
 			"EUSTOREMISSINGPASSWORD": "Found user with the email \"<%= email %>\", but it has no password saved."
 			"EUSTOREMAILTOKEN": "The token has has not been fount within the mail body"
