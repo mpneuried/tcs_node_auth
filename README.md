@@ -409,6 +409,7 @@ Get the content data for a mail.
 ## Release History
 |Version|Date|Description|
 |:--:|:--:|:--|
+|v0.2.0|2013-10-31|Added `.changeMail()` Method|
 |v0.1.0|2013-10-30|Initial commit|
 
 
