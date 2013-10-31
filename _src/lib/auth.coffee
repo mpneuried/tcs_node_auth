@@ -149,8 +149,8 @@ module.exports = class Auth extends require( "./basic" )
 								cb( err )
 								return
 							@debug "created token `#{token}` of type `#{tokenData.type}` for mail `#{tokenData.email}`"
+							@emit "activated", token, tokenData
 							cb( null, userData )
-							@emit tokenData.type, token, tokenData.email, tokenData.newemail 
 							return
 						return
 					return
