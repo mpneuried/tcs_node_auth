@@ -29,20 +29,15 @@ module.exports = class TokenStore extends require( "./basic" )
 			return
 		return
 
-	crypt: ( type, email, time = Date.now() )=>
-		_crypted = @crypto.crypt( @tknpw,  type + ":" + email + ":" + time )
+	crypt: ( data )=>
+		_crypted = @crypto.crypt( @tknpw, JSON.stringify( data ) )
 		@debug "crypted", _crypted
 		return _crypted
 
 	decrypt: ( token )=>
 		_str = @crypto.decrypt( @tknpw, token )
 		@debug "decrypted", _str
-		[ type, email, time ] = _str.split( ":" )
-		ret = 
-			type: type
-			email: email
-			time: parseInt( time, 10 )
-		return ret
+		return JSON.parse( _str )
 
 	_getByToken: ( token, cb )=>
 		try
@@ -83,8 +78,16 @@ module.exports = class TokenStore extends require( "./basic" )
 			return
 		return
 
-	_create: ( type, mail, cb )=>
-		_token = @crypt( type, mail )
+	_create: ( type, mail, newemail, cb )=>
+		_cryptData = 
+			type: type
+			email: mail
+			time: Date.now()
+
+		if type is "changemail" and newemail?
+			_cryptData.newemail = newemail
+
+		_token = @crypt( _cryptData )
 		_key = @_tRedisKey( mail )
 		
 		rM = []

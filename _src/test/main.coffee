@@ -150,7 +150,6 @@ describe "=== MAIN TESTS === ", ->
 		it "register", ( done )->
 
 			auth.once "register", ( token, email )->
-
 				email.should.equal( _mailTestR )
 				testTokens[ _mailTestR ] = token
 				done()
@@ -243,6 +242,120 @@ describe "=== MAIN TESTS === ", ->
 
 			auth.forgot _mailTestF, ( err, tokenData )->
 				should.not.exist( err )
+				return
+			return
+
+		it "activate forgotten password", ( done )->
+			auth.activate testTokens[ _mailTestF ], "testpw", ( err, userData )->
+				should.not.exist( err )
+
+				should.exist( userData )
+				userData.should.have.property( "email" ).with.equal( _mailTestF )
+				done()
+				return
+			return
+
+		it "login with new password", ( done )->
+			auth.login _mailTestF, "testpw", ( err, userData )->
+				should.not.exist( err )
+				
+				should.exist( userData )
+				userData.email.should.equal( _mailTestF )
+				done()
+				return
+			return
+
+	_mailTestCO = "krissanford@example.com"
+	_mailTestCE = "cortezwaters@example.com"
+	_mailTestCN = "changed@example.com"
+
+	describe "- Change Mail -", ->
+
+		it "change with not existing current_email", ( done )->
+			auth.changeMail "unknown@example.com", _mailTestCN, ( err )->
+				should.exist( err )
+				should.exist( err.name )
+				err.name.should.equal( "EMAILINVALID" )
+				done()
+				return
+			return
+
+		it "change current_email = `null`", ( done )->
+			auth.changeMail null, _mailTestCN, ( err )->
+				should.exist( err )
+				should.exist( err.name )
+				err.name.should.equal( "EMISSINGMAIL" )
+				done()
+				return
+			return
+
+		it "change empty current_email", ( done )->
+			auth.changeMail "", _mailTestCN, ( err )->
+				should.exist( err )
+				should.exist( err.name )
+				err.name.should.equal( "EMISSINGMAIL" )
+				done()
+				return
+			return
+
+		it "change with existing new_email", ( done )->
+			auth.changeMail _mailTestCO, _mailTestCE, ( err )->
+				should.exist( err )
+				should.exist( err.name )
+				err.name.should.equal( "ENEWMAILINVALID" )
+				done()
+				return
+			return
+
+		it "change new_email = `null`", ( done )->
+			auth.changeMail _mailTestCO, null, ( err )->
+				should.exist( err )
+				should.exist( err.name )
+				err.name.should.equal( "EMISSINGNEWMAIL" )
+				done()
+				return
+			return
+
+		it "change empty new_email", ( done )->
+			auth.changeMail _mailTestCO, "", ( err )->
+				should.exist( err )
+				should.exist( err.name )
+				err.name.should.equal( "EMISSINGNEWMAIL" )
+				done()
+				return
+			return
+
+		it "change mail", ( done )->
+
+			auth.once "changemail", ( token, email, newemail )->
+				email.should.equal( _mailTestCO )
+				newemail.should.equal( _mailTestCN )
+				testTokens[ _mailTestCO ] = token
+				done()
+				return
+
+			auth.changeMail _mailTestCO, _mailTestCN, ( err, tokenData )->
+				should.not.exist( err )
+				return
+			return
+
+		it "activate changed mail", ( done )->
+			auth.activate testTokens[ _mailTestCO ], null, ( err, userData )->
+				should.not.exist( err )
+
+				should.exist( userData )
+				userData.should.have.property( "email" ).with.equal( _mailTestCN )
+				done()
+				return
+			return
+
+		it "login with changed email", ( done )->
+			auth.login _mailTestCN, "testpw", ( err, userData )->
+				should.not.exist( err )
+				
+				should.exist( userData )
+				userData.email.should.equal( _mailTestCN )
+				done()
 				return
 			return
 

@@ -1,6 +1,7 @@
 (function() {
   var DefektUserStore, DummyDB, DummyUserStore, NotFunctionUserStore, _, _ref, _ref1, _ref2,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __slice = [].slice,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -9,6 +10,8 @@
   DummyDB = (function() {
     function DummyDB(coll) {
       this.coll = coll;
+      this.update = __bind(this.update, this);
+      this.get = __bind(this.get, this);
       this.create = __bind(this.create, this);
       this.filter = __bind(this.filter, this);
       this.has = __bind(this.has, this);
@@ -37,6 +40,33 @@
       cb(null, data);
     };
 
+    DummyDB.prototype.get = function() {
+      var args, cb, crit, key, _i, _query,
+        _this = this;
+      args = 2 <= arguments.length ? __slice.call(arguments, 0, _i = arguments.length - 1) : (_i = 0, []), cb = arguments[_i++];
+      crit = args[0], key = args[1];
+      _query = {};
+      _query[key || "id"] = crit;
+      this.filter(_query, function(err, users) {
+        if (!(users != null ? users.length : void 0)) {
+          cb(new Error("not-found"));
+          return;
+        }
+        cb(null, users[0]);
+      });
+    };
+
+    DummyDB.prototype.update = function(id, data, cb) {
+      var _this = this;
+      this.get(id, function(err, user) {
+        if (err) {
+          cb(err);
+          return;
+        }
+        cb(null, _.extend(user, data));
+      });
+    };
+
     return DummyDB;
 
   })();
@@ -45,6 +75,7 @@
     __extends(DefektUserStore, _super);
 
     function DefektUserStore() {
+      this.setUserMail = __bind(this.setUserMail, this);
       this.setUserCredentials = __bind(this.setUserCredentials, this);
       this.checkUserEmail = __bind(this.checkUserEmail, this);
       this.getUserCredentials = __bind(this.getUserCredentials, this);
@@ -79,12 +110,48 @@
         email: email,
         password: passwordcypt
       };
-      this.create(_user, function(err, dbUser) {
+      this.get(email, "email", function(err, user) {
+        if (err && (err != null ? err.name : void 0) === "not-found") {
+          cb(err);
+        }
+        if (user != null) {
+          return _this.update(user.id, {
+            password: passwordcypt
+          }, function(err, dbUser) {
+            if (err) {
+              cb(err);
+              return;
+            }
+            cb(null, dbUser);
+          });
+        } else {
+          _this.create(_user, function(err, dbUser) {
+            if (err) {
+              cb(err);
+              return;
+            }
+            cb(null, dbUser);
+          });
+        }
+      });
+    };
+
+    DefektUserStore.prototype.setUserMail = function(current_email, new_email, cb) {
+      var _this = this;
+      this.get(current_email, "email", function(err, user) {
         if (err) {
           cb(err);
           return;
         }
-        cb(null, dbUser);
+        _this.update(user.id, {
+          email: new_email
+        }, function(err, dbUser) {
+          if (err) {
+            cb(err);
+            return;
+          }
+          cb(null, dbUser);
+        });
       });
     };
 
@@ -101,7 +168,7 @@
       return _ref1;
     }
 
-    DummyUserStore.prototype.getMailContent = function(type, token, options, cb) {
+    DummyUserStore.prototype.getMailContent = function(type, tokenOrNewmail, options, cb) {
       var mailData;
       switch (type) {
         case "register":
@@ -113,11 +180,23 @@
           mailData = {
             subject: "Test password forgot"
           };
+          break;
+        case "changemail":
+          mailData = {
+            subject: "Test change mail"
+          };
+          break;
+        case "notifyoldmail":
+          mailData = {
+            subject: "Test notify old mail"
+          };
       }
-      if ((options != null ? options.testMissingLink : void 0) != null) {
+      if (type === "notifyoldmail") {
+        mailData.body = "Your mail has changed to `" + tokenOrNewmail + "`.";
+      } else if ((options != null ? options.testMissingLink : void 0) != null) {
         mailData.body = "Body without token should cause an error.";
       } else {
-        mailData.body = "Follow http://www.test.com/" + token + " to set your password.";
+        mailData.body = "Follow http://www.test.com/" + tokenOrNewmail + " to set your password.";
       }
       cb(null, mailData);
     };

@@ -21,7 +21,7 @@
   };
 
   describe("=== MAIN TESTS === ", function() {
-    var testTokens, _mailTestF, _mailTestL, _mailTestR;
+    var testTokens, _mailTestCE, _mailTestCN, _mailTestCO, _mailTestF, _mailTestL, _mailTestR;
     describe("- Init -", function() {
       it("create auth app. UserStore with missing method.", function(done) {
         var _err;
@@ -218,7 +218,7 @@
           done();
         });
       });
-      return it("forgot password", function(done) {
+      it("forgot password", function(done) {
         auth.once("forgot", function(token, email) {
           email.should.equal(_mailTestF);
           testTokens[_mailTestF] = token;
@@ -226,6 +226,102 @@
         });
         auth.forgot(_mailTestF, function(err, tokenData) {
           should.not.exist(err);
+        });
+      });
+      it("activate forgotten password", function(done) {
+        auth.activate(testTokens[_mailTestF], "testpw", function(err, userData) {
+          should.not.exist(err);
+          should.exist(userData);
+          userData.should.have.property("email")["with"].equal(_mailTestF);
+          done();
+        });
+      });
+      return it("login with new password", function(done) {
+        auth.login(_mailTestF, "testpw", function(err, userData) {
+          should.not.exist(err);
+          should.exist(userData);
+          userData.email.should.equal(_mailTestF);
+          done();
+        });
+      });
+    });
+    _mailTestCO = "krissanford@example.com";
+    _mailTestCE = "cortezwaters@example.com";
+    _mailTestCN = "changed@example.com";
+    describe("- Change Mail -", function() {
+      it("change with not existing current_email", function(done) {
+        auth.changeMail("unknown@example.com", _mailTestCN, function(err) {
+          should.exist(err);
+          should.exist(err.name);
+          err.name.should.equal("EMAILINVALID");
+          done();
+        });
+      });
+      it("change current_email = `null`", function(done) {
+        auth.changeMail(null, _mailTestCN, function(err) {
+          should.exist(err);
+          should.exist(err.name);
+          err.name.should.equal("EMISSINGMAIL");
+          done();
+        });
+      });
+      it("change empty current_email", function(done) {
+        auth.changeMail("", _mailTestCN, function(err) {
+          should.exist(err);
+          should.exist(err.name);
+          err.name.should.equal("EMISSINGMAIL");
+          done();
+        });
+      });
+      it("change with existing new_email", function(done) {
+        auth.changeMail(_mailTestCO, _mailTestCE, function(err) {
+          should.exist(err);
+          should.exist(err.name);
+          err.name.should.equal("ENEWMAILINVALID");
+          done();
+        });
+      });
+      it("change new_email = `null`", function(done) {
+        auth.changeMail(_mailTestCO, null, function(err) {
+          should.exist(err);
+          should.exist(err.name);
+          err.name.should.equal("EMISSINGNEWMAIL");
+          done();
+        });
+      });
+      it("change empty new_email", function(done) {
+        auth.changeMail(_mailTestCO, "", function(err) {
+          should.exist(err);
+          should.exist(err.name);
+          err.name.should.equal("EMISSINGNEWMAIL");
+          done();
+        });
+      });
+      it("change mail", function(done) {
+        auth.once("changemail", function(token, email, newemail) {
+          email.should.equal(_mailTestCO);
+          newemail.should.equal(_mailTestCN);
+          testTokens[_mailTestCO] = token;
+          done();
+        });
+        auth.changeMail(_mailTestCO, _mailTestCN, function(err, tokenData) {
+          should.not.exist(err);
+        });
+      });
+      it("activate changed mail", function(done) {
+        auth.activate(testTokens[_mailTestCO], null, function(err, userData) {
+          should.not.exist(err);
+          should.exist(userData);
+          userData.should.have.property("email")["with"].equal(_mailTestCN);
+          done();
+        });
+      });
+      return it("login with changed email", function(done) {
+        auth.login(_mailTestCN, "testpw", function(err, userData) {
+          should.not.exist(err);
+          should.exist(userData);
+          userData.email.should.equal(_mailTestCN);
+          done();
         });
       });
     });

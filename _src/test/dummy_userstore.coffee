@@ -24,6 +24,29 @@ class DummyDB
 		cb( null, data )
 		return
 
+	get: =>
+		[ args..., cb ] = arguments
+		[ crit, key ] = args
+		_query = {}
+		_query[ key or "id" ] = crit
+
+		@filter _query, ( err, users )=>
+			if not users?.length 
+				cb( new Error( "not-found" ) )
+				return
+			cb( null, users[ 0 ] )
+			return
+		return
+
+	update: ( id, data, cb )=>
+		@get id, ( err, user )=>
+			if err
+				cb( err )
+				return
+			cb( null, _.extend( user, data ) )
+			return
+		return
+
 class DefektUserStore extends DummyDB
 	# UserStore methods
 	getUserCredentials: ( email, cb )=>
@@ -44,24 +67,54 @@ class DefektUserStore extends DummyDB
 			name: null
 			email: email
 			password: passwordcypt
+		@get email, "email", ( err, user )=>
+			if err and err?.name is "not-found"
+				cb( err )
 
-		@create _user, ( err, dbUser )=>
+			if user?
+				@update user.id, password: passwordcypt, ( err, dbUser )=>
+					if err
+						cb( err )
+						return
+					cb( null, dbUser )
+					return
+			else
+				@create _user, ( err, dbUser )=>
+					if err
+						cb( err )
+						return
+					cb( null, dbUser )
+					return
+				return
+		return
+
+	setUserMail: ( current_email, new_email, cb )=>
+		@get current_email, "email", ( err, user )=>
 			if err
 				cb( err )
 				return
-			cb( null, dbUser )
+			@update user.id, email: new_email, ( err, dbUser )=>
+				if err
+					cb( err )
+					return
+				cb( null, dbUser )
+				return
 			return
 		return
 
 class DummyUserStore extends DefektUserStore
-	getMailContent: ( type ,token, options, cb )=>
+	getMailContent: ( type ,tokenOrNewmail, options, cb )=>
 		switch type
 			when "register" then mailData = { subject: "Test activation" }
 			when "forgot" then mailData = { subject: "Test password forgot" }
-		if options?.testMissingLink?
+			when "changemail" then mailData = { subject: "Test change mail" }
+			when "notifyoldmail" then mailData = { subject: "Test notify old mail" }
+		if type is "notifyoldmail"
+			mailData.body = "Your mail has changed to `#{tokenOrNewmail}`."
+		else if options?.testMissingLink?
 			mailData.body = "Body without token should cause an error."
 		else
-			mailData.body = "Follow http://www.test.com/#{token} to set your password."
+			mailData.body = "Follow http://www.test.com/#{tokenOrNewmail} to set your password."
 
 		cb( null, mailData )
 		return

@@ -23,6 +23,7 @@ module.exports = class Auth extends require( "./basic" )
 		@login = @_waitUntilReady( @_login )
 		@register = @_waitUntilReady( @_register )
 		@forgot = @_waitUntilReady( @_forgot )
+		@changeMail = @_waitUntilReady( @_changeMail )
 		@getToken = @_waitUntilReady( @_getToken )
 		@activate = @_waitUntilReady( @_activate )
 
@@ -92,7 +93,6 @@ module.exports = class Auth extends require( "./basic" )
 				@_delayError( cb, "ELOGINFAILED" )
 				return
 
-
 			bcrypt.compare password, dbPassword, ( err, same )=>
 				@debug "check-pw", dbPassword, err, same
 				if err
@@ -118,12 +118,12 @@ module.exports = class Auth extends require( "./basic" )
 		@tokenStore._getByToken( token, cb )
 		return
 
-	_activate: ( token, password, cb )=>
+	_activate: =>
+		[ args..., cb ] = arguments
+		[ token, password, options ] = args
+
 		if not token?.length
 			@_handleError( cb, "EMISSINGTOKEN", method: "activate" )
-			return
-		if not password?.length
-			@_handleError( cb, "EMISSINGPASSWORD", method: "activate")
 			return
 
 		@_getToken token, ( err, tokenData )=>
@@ -132,23 +132,50 @@ module.exports = class Auth extends require( "./basic" )
 				return
 			@debug "got token", tokenData
 
-			salt = bcrypt.genSaltSync( @config.bryptrounds )
-			_cryptpassword = bcrypt.hashSync( password, salt )
-
-			@userstore.setUserCredentials tokenData.email, _cryptpassword, ( err, userData )=>
-				if err
-					cb( err ) 
-					return
-				@debug "created user `#{tokenData.email}` by token `#{token}`"
-
-				@tokenStore.remove tokenData.email, ( err )=>
-					if err 
-						cb( err )
+			if tokenData.type is "changemail"
+				@userstore.setUserMail tokenData.email, tokenData.newemail, ( err, userData )=>
+					if err
+						cb( err ) 
 						return
-					@debug "activated mail `#{tokenData.email}` with token `#{token}`"
-					cb( null, userData )
+					@debug "changed user mail `#{tokenData.email}` to `#{tokenData.newemail}` by token `#{token}`"
+
+					@userstore.getMailContent "notifyoldmail", tokenData.newemail, options, ( err, mailData )=>
+						if err
+							cb( err )
+							return
+
+						@emit "mail", tokenData.email, mailData, ( err )=>
+							if err
+								cb( err )
+								return
+							@debug "created token `#{token}` of type `#{tokenData.type}` for mail `#{tokenData.email}`"
+							cb( null, userData )
+							@emit tokenData.type, token, tokenData.email, tokenData.newemail 
+							return
+						return
 					return
-				return
+			else
+				if not password?.length
+					@_handleError( cb, "EMISSINGPASSWORD", method: "activate")
+					return
+
+				salt = bcrypt.genSaltSync( @config.bryptrounds )
+				_cryptpassword = bcrypt.hashSync( password, salt )
+
+				@userstore.setUserCredentials tokenData.email, _cryptpassword, ( err, userData )=>
+					if err
+						cb( err ) 
+						return
+					@debug "created or updated user `#{tokenData.email}` by token `#{token}`"
+
+					@tokenStore.remove tokenData.email, ( err )=>
+						if err 
+							cb( err )
+							return
+						@debug "activated mail `#{tokenData.email}` with token `#{token}`"
+						cb( null, userData )
+						return
+					return
 			return
 		return
 
@@ -166,7 +193,69 @@ module.exports = class Auth extends require( "./basic" )
 		@_create( "forgot", email, options, cb )
 		return
 
+	_changeMail: =>
+		[ args..., cb ] = arguments
+		[ email, newemail, options ] = args
+		type = "changemail"
+
+		if not email?.length
+			@_handleError( cb, "EMISSINGMAIL", method: type )
+			return
+
+		if not newemail?.length
+			@_handleError( cb, "EMISSINGNEWMAIL", method: type )
+			return
+
+		@userstore.checkUserEmail email, ( err, exists )=>
+			if err
+				@_handleError( cb, err )
+				return
+
+			else if not exists
+				@warning "mail `#{email}` not exists"
+				@_handleError( cb, "EMAILINVALID", email: email )
+				return
+
+			@userstore.checkUserEmail newemail, ( err, exists )=>
+				if err
+					@_handleError( cb, err )
+					return
+
+				else if exists
+					@warning "mail `#{email}` not exists"
+					@_handleError( cb, "ENEWMAILINVALID", email: newemail )
+					return
+
+				@tokenStore.create type, email, newemail, ( err, token )=>
+					if err
+						cb( err )
+						return
+
+					@userstore.getMailContent type, token, options, ( err, mailData )=>
+						if err
+							cb( err )
+							return
+
+						if mailData.body?.indexOf?( token ) >= 0
+							@emit "mail", email, mailData, ( err )=>
+								if err
+									cb( err )
+									return
+								@debug "created token `#{token}` of type `#{type}` for mail `#{email}`"
+								cb( null )
+								@emit type, token, email, newemail
+								return
+						else
+							@_handleError( cb, "EUSTOREMAILTOKEN" )
+						return
+					return
+				return
+			return
+		return
+
 	_create: ( type, email, options, cb )=>
+		[ args..., cb ] = arguments
+		[ type, email, options ] = args
 
 		if not email?.length
 			@_handleError( cb, "EMISSINGMAIL", method: type )
@@ -185,7 +274,7 @@ module.exports = class Auth extends require( "./basic" )
 				@_handleError( cb, "EMAILINVALID", email: email )
 				return
 
-			@tokenStore.create type, email, ( err, token )=>
+			@tokenStore.create type, email, null, ( err, token )=>
 				if err
 					cb( err )
 					return
@@ -198,8 +287,8 @@ module.exports = class Auth extends require( "./basic" )
 					if mailData.body?.indexOf?( token ) >= 0
 						@emit "mail", email, mailData, ( err )=>
 							@debug "created token `#{token}` of type `#{type}` for mail `#{email}`"
-							cb( null )
 							@emit type, token, email
+							cb( null )
 							return
 					else
 						@_handleError( cb, "EUSTOREMAILTOKEN" )
@@ -228,9 +317,11 @@ module.exports = class Auth extends require( "./basic" )
 		@extend super, 
 			"ELOGINFAILED": "Login failed. Please check your credentials"
 			"EMISSINGMAIL": "To invoke a `<%= method %>` you have to define the email argument."
+			"EMISSINGNEWMAIL": "To invoke a `<%= method %>` you have to define the current and the new email."
 			"EMISSINGPASSWORD": "To invoke a `<%= method %>`you have to define the password argument."
 			"EMISSINGTOKEN": "To invoke a `<%= method %>`you have to define the token argument."
 			"EMAILINVALID": "The given mail `<%= email %>` is not allowed."
+			"ENEWMAILINVALID": "The given mail `<%= email %>` is allready existend."
 			"EUSTOREMISSINGMETHOD": "Missing method `<%= method %>` in UserStore"
 			"EUSTOREMISSINGPASSWORD": "Found user with the email \"<%= email %>\", but it has no password saved."
 			"EUSTOREMAILTOKEN": "The token has has not been fount within the mail body"
