@@ -145,6 +145,16 @@
           done();
         });
       });
+      it("register with missing link", function(done) {
+        auth.register(_mailTestR, {
+          testMissingLink: true
+        }, function(err) {
+          should.exist(err);
+          should.exist(err.name);
+          err.name.should.equal("EUSTOREMAILTOKEN");
+          done();
+        });
+      });
       return it("register", function(done) {
         auth.once("register", function(token, email) {
           email.should.equal(_mailTestR);

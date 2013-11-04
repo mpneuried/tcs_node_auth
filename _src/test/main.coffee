@@ -147,6 +147,15 @@ describe "=== MAIN TESTS === ", ->
 				return
 			return
 
+		it "register with missing link", ( done )->
+			auth.register _mailTestR, { testMissingLink: true }, ( err )->
+				should.exist( err )
+				should.exist( err.name )
+				err.name.should.equal( "EUSTOREMAILTOKEN" )
+				done()
+				return
+			return
+
 		it "register", ( done )->
 
 			auth.once "register", ( token, email )->

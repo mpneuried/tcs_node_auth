@@ -72,7 +72,7 @@ var UserStore = {
 	},
 	// implement the method to create a new user after a succesfull activation
 	setUserCredentials: function( email, passwordcypt, callback ){ 
-		DbPlaceholder.createOrUpdateByMail( email, { email: email, passowrd: passwordcypt }, function( err, dbUser ){
+		DbPlaceholder.createOrUpdateByMail( email, { email: email, password: passwordcypt }, function( err, dbUser ){
 			if( err ){ callback( err ); return }
 			callback( null, dbUser ) 
 		});
@@ -118,7 +118,7 @@ var UserStore = {
 }
 
 // init the AuthApp
-var AuthApp = require( "authapp" );
+var AuthApp = require( "tcs_node_auth" );
 _config = {
 	mailAppId: "mymailappid"
 	mailConfig: {
@@ -139,7 +139,7 @@ app
 // login endpoint
 app.post( "/login", function( req, res ){
 	// call the login method
-	authHelper.login( req.body.email, req.body.passowrd, function( err, userData ){
+	authHelper.login( req.body.email, req.body.password, function( err, userData ){
 		if{ err }{ res.send( 500, err );return }
 		// create youre session
 		req.session._user = userData;
@@ -487,6 +487,7 @@ Get the content data for a mail.
 ## Release History
 |Version|Date|Description|
 |:--:|:--:|:--|
+|v0.2.1|2013-11-04|Fixed readme|
 |v0.2.0|2013-10-31|Added `.changeMail()` Method|
 |v0.1.0|2013-10-30|Initial commit|
 
