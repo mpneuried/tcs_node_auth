@@ -494,7 +494,7 @@ Get the content data for a mail.
 ## Release History
 |Version|Date|Description|
 |:--:|:--:|:--|
-|v0.2.2|2013-11-04|Bugfix for debuggin config|
+|v0.2.2|2013-11-04|Bugfix for debuggin config and fixed `example.js` to a woking version|
 |v0.2.1|2013-11-04|Fixed readme|
 |v0.2.0|2013-10-31|Added `.changeMail()` Method|
 |v0.1.0|2013-10-30|Initial commit|
