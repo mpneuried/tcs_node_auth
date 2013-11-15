@@ -76,7 +76,7 @@ var UserStore = {
 		});
 	},
 	// implement the method to create a new user after a succesfull activation
-	setUserCredentials: function( email, passwordcypt, callback ){ 
+	setUserCredentials: function( email, passwordcypt, isRegister, callback ){ 
 		DbPlaceholder.createOrUpdateByMail( email, { email: email, password: passwordcypt }, function( err, dbUser ){
 			if( err ){ callback( err ); return }
 			callback( null, dbUser ) 
@@ -227,7 +227,7 @@ to create the AuthApp call `new` with the configuared `UserStore` and the module
 	* **port** ( `Number` - *optional; default = `6379`* ): The redis port
 	* **options** ( `Object` - *optional* ): The redis connection options
 * **defaultsendermail** ( `String` - *optional* ): If defined, this mail will be used as default sender mail. It can always be overwritten by the `UserStore.???MailContent` methods.
-* **mailAppId** ( `String` ): The `tcs_node_mail_client` app id.
+* **mailAppId** ( `String` ): The `tcs_node_mail_client` app id. If you set this to `false` the internal mailer will be deactivated. So you can implement your own notify logic.
 * **mailConfig** ( `Object` ): The `tcs_node_mail_client` configuration.  
   Details: [tcs_mail_node_client]( https://github.com/mpneuried/tcs_mail_node_client ).
 * **tokenAlgorithm** ( `String`- *optional; default = `des3`* ): The crypting algorythm to crypt the data inside a token.
@@ -326,10 +326,11 @@ This method make use of the `UserStore.setUserCredentials()` Method.
 * **[options]** ( `String|Number|Object` - *optional* ): Options to be used inside the `UserStore.getMailContent` method. 
 * **callback** ( `Function` ): The callback method.
 
-#### Parameter for `callback( error, userData )`
+#### Parameter for `callback( error, userData, tokenData )`
 
 * **error** ( `String|Error|Object` ): A general error object wich.
 * **userData** ( `String|Number|Object` ): Additional data you can use after a successful activation. E.g. Data to create your session.
+* **tokenData** ( `Object` ): Decoded token data.
 
 # Events
 
@@ -448,6 +449,7 @@ Create a basic user with email and password.
 
 * **email** ( `String` ): The email to create the user.
 * **passwordcypt** ( `String` ): The password, crypted by "bcrypt" to create the user.
+* **isRegister** ( `Boolean` ): Flag if it's a register call.
 * **callback** ( `Function` ): The callback method.
 
 #### Parameter for `callback( error, userData )`
@@ -494,6 +496,7 @@ Get the content data for a mail.
 ## Release History
 |Version|Date|Description|
 |:--:|:--:|:--|
+|v0.3.0|2013-11-15|Deactivating mail service by setting `mailAppId = false`. Added `isRegister` argument to `UserStore.setUserCredentials`.|
 |v0.2.2|2013-11-04|Bugfix for debuggin config and fixed `example.js` to a woking version|
 |v0.2.1|2013-11-04|Fixed readme|
 |v0.2.0|2013-10-31|Added `.changeMail()` Method|

@@ -5,14 +5,17 @@ module.exports = class Mailer extends require( "./basic" )
 	defaults: =>
 		return @extend true, super,
 			mailAppId: null
-			mailConfig: {}
+			mailConfig: null
 
 	constructor: ( @app, options )->
 		super( options )
 		return
 
 	initialize: =>
-		
+		if @config.mailAppId is false
+			@info "internal mailer deactivated"
+			return
+
 		if not @config.mailAppId
 			@_handleError( "INIT", "EMAILERNOCONFIG" )
 			return
@@ -26,6 +29,10 @@ module.exports = class Mailer extends require( "./basic" )
 		return
 
 	sendMail: ( receiver, data, cb )=>
+		# return imediatly if mailer is deactivated
+		if @config.mailAppId is false
+			cb( null ) if cb
+			return
 
 		@debug "send mail to #{receiver}"
 		mail = @factory.create()

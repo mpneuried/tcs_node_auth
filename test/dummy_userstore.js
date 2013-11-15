@@ -102,7 +102,7 @@
       }, cb);
     };
 
-    DefektUserStore.prototype.setUserCredentials = function(email, passwordcypt, cb) {
+    DefektUserStore.prototype.setUserCredentials = function(email, passwordcypt, isRegister, cb) {
       var _user,
         _this = this;
       _user = {

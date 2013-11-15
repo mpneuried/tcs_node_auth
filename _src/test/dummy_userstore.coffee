@@ -62,7 +62,7 @@ class DefektUserStore extends DummyDB
 		@has( email: email, cb )
 		return
 
-	setUserCredentials: ( email, passwordcypt, cb )=>
+	setUserCredentials: ( email, passwordcypt, isRegister, cb )=>
 		_user =
 			name: null
 			email: email

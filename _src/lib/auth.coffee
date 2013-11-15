@@ -12,7 +12,7 @@ module.exports = class Auth extends require( "./basic" )
 		return @extend true, {}, super,
 			bryptrounds: 8
 			mailAppId: null
-			mailConfig: {}
+			mailConfig: null
 			redis: null
 
 	constructor: ( @userstore, options )->
@@ -139,6 +139,13 @@ module.exports = class Auth extends require( "./basic" )
 						return
 					@debug "changed user mail `#{tokenData.email}` to `#{tokenData.newemail}` by token `#{token}`"
 
+					# bypass the internal mailer
+					if @config.mailAppId is false
+						@debug "created token `#{token}` of type `#{tokenData.type}` for mail `#{tokenData.email}`"
+						@emit "activated", token, tokenData
+						cb( null, userData, tokenData )
+						return
+
 					@userstore.getMailContent "notifyoldmail", tokenData.newemail, options, ( err, mailData )=>
 						if err
 							cb( err )
@@ -150,7 +157,7 @@ module.exports = class Auth extends require( "./basic" )
 								return
 							@debug "created token `#{token}` of type `#{tokenData.type}` for mail `#{tokenData.email}`"
 							@emit "activated", token, tokenData
-							cb( null, userData )
+							cb( null, userData, tokenData )
 							return
 						return
 					return
@@ -162,7 +169,7 @@ module.exports = class Auth extends require( "./basic" )
 				salt = bcrypt.genSaltSync( @config.bryptrounds )
 				_cryptpassword = bcrypt.hashSync( password, salt )
 
-				@userstore.setUserCredentials tokenData.email, _cryptpassword, ( err, userData )=>
+				@userstore.setUserCredentials tokenData.email, _cryptpassword, ( tokenData.type is "register" ), ( err, userData )=>
 					if err
 						cb( err ) 
 						return
@@ -231,6 +238,12 @@ module.exports = class Auth extends require( "./basic" )
 						cb( err )
 						return
 
+					# bypass the internal mailer
+					if @config.mailAppId is false
+						@emit type, token, email, newemail
+						cb( null )
+						return
+
 					@userstore.getMailContent type, token, options, ( err, mailData )=>
 						if err
 							cb( err )
@@ -242,8 +255,8 @@ module.exports = class Auth extends require( "./basic" )
 									cb( err )
 									return
 								@debug "created token `#{token}` of type `#{type}` for mail `#{email}`"
-								cb( null )
 								@emit type, token, email, newemail
+								cb( null )
 								return
 						else
 							@_handleError( cb, "EUSTOREMAILTOKEN" )
@@ -279,6 +292,13 @@ module.exports = class Auth extends require( "./basic" )
 					cb( err )
 					return
 
+				# bypass the internal mailer
+				if @config.mailAppId is false
+					@debug "created token `#{token}` of type `#{type}` for mail `#{email}`"
+					@emit type, token, email
+					cb( null, token )
+					return
+
 				@userstore.getMailContent type, token, options, ( err, mailData )=>
 					if err
 						cb( err )
@@ -300,7 +320,10 @@ module.exports = class Auth extends require( "./basic" )
 		return
 
 	_validateUserStore: =>
-		methods = [ "getUserCredentials", "checkUserEmail", "setUserCredentials", "getMailContent" ]
+		if @config.mailAppId is false
+			methods = [ "getUserCredentials", "checkUserEmail", "setUserCredentials" ]
+		else
+			methods = [ "getUserCredentials", "checkUserEmail", "setUserCredentials", "getMailContent" ]
 		for method in methods when not @userstore[ method ]? or not _.isFunction( @userstore[ method ] )
 			@_handleError( null, "EUSTOREMISSINGMETHOD", method: method )
 			return
