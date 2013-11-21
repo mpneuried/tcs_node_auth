@@ -250,7 +250,7 @@ module.exports = class Auth extends require( "./basic" )
 							return
 
 						if mailData.body?.indexOf?( token ) >= 0
-							@emit "mail", email, mailData, ( err )=>
+							@emit "mail", newemail, mailData, ( err )=>
 								if err
 									cb( err )
 									return

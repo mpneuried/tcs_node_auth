@@ -497,6 +497,7 @@ Get the content data for a mail.
 ## Release History
 |Version|Date|Description|
 |:--:|:--:|:--|
+|v0.3.2|2013-11-21|Fixed token-mail receiver in changemail method|
 |v0.3.1|2013-11-21|Added options to `UserStore.checkUserEmail( email, options, callback )`|
 |v0.3.0|2013-11-15|Deactivating mail service by setting `mailAppId = false`. Added `isRegister` argument to `UserStore.setUserCredentials`.|
 |v0.2.2|2013-11-04|Bugfix for debuggin config and fixed `example.js` to a woking version|
