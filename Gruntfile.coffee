@@ -32,7 +32,7 @@ module.exports = (grunt) ->
 				require: [ "should" ]
 				reporter: "spec"
 				bail: true
-				timeout: 5000
+				timeout: 10000
 				slow: 10
 				env: 
 					debug: ""
