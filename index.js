@@ -1,5 +1,5 @@
 (function() {
-  exports.version = '0.3.0';
+  exports.version = '0.3.1';
 
   exports.utils = require('./lib/utils');
 

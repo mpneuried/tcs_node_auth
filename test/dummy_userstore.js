@@ -96,7 +96,7 @@
       });
     };
 
-    DefektUserStore.prototype.checkUserEmail = function(email, cb) {
+    DefektUserStore.prototype.checkUserEmail = function(email, options, cb) {
       this.has({
         email: email
       }, cb);

@@ -58,7 +58,7 @@ class DefektUserStore extends DummyDB
 			return
 		return
 
-	checkUserEmail: ( email, cb )=>
+	checkUserEmail: ( email, options, cb )=>
 		@has( email: email, cb )
 		return
 

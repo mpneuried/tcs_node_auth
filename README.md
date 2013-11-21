@@ -65,7 +65,7 @@ var UserStore = {
 		});
 	},
 	// implement the method to check if a mail allready exists
-	checkUserEmail: function( email, callback ){ 
+	checkUserEmail: function( email, options, callback ){ 
 		DbPlaceholder.find( { email: email }, function( err, dbUser ){
 			if( err ){ callback( err ); return }
 			if( dbUser != void(0) ){
@@ -255,12 +255,12 @@ This method make use of the `UserStore.getUserCredentials( email, callback )` Me
 
 Create a user login request.
 
-This method make use of the `UserStore.checkUserEmail( email, callback )` and `UserStore.getMailContent( type, link, options, callback )` Methods.
+This method make use of the `UserStore.checkUserEmail( email, options, callback )` and `UserStore.getMailContent( type, link, options, callback )` Methods.
 
 ####Arguments:
 
 * **email** ( `String` ): The users email.
-* **[options]** ( `String|Number|Object` - *optional* ): Options to be used inside the `UserStore.getMailContent` method.
+* **[options]** ( `String|Number|Object` - *optional* ): Options to be used inside the `UserStore.getMailContent` and `UserStore.checkUserEmail` method.
 * **callback** ( `Function` ): The callback method.
 
 #### Parameter for `callback( error )`
@@ -271,12 +271,12 @@ This method make use of the `UserStore.checkUserEmail( email, callback )` and `U
 
 Create a request to send a user forgot password mail.
 
-This method make use of the `UserStore.checkUserEmail( email, callback )` and `UserStore.getMailContent( type, link, options, callback )` Methods.
+This method make use of the `UserStore.checkUserEmail( email, options, callback )` and `UserStore.getMailContent( type, link, options, callback )` Methods.
 
 ####Arguments:
 
 * **email** ( `String` ): The users email.
-* **[options]** ( `String|Number|Object` - *optional* ): Options to be used inside the `UserStore.getMailContent` method.
+* **[options]** ( `String|Number|Object` - *optional* ): Options to be used inside the `UserStore.getMailContent` and `UserStore.checkUserEmail` method.
 * **callback** ( `Function` ): The callback method.
 
 #### Parameter for `callback( error )`
@@ -288,13 +288,13 @@ This method make use of the `UserStore.checkUserEmail( email, callback )` and `U
 Create a request to to change an existing email.
 The new email will get a Message with the token link. After a succesfull change the old emial will receice a notification message.
 
-This method make use of the `UserStore.checkUserEmail( email, callback )`, `UserStore.setUserMail( current_email, new_email, callback )` and `UserStore.getMailContent( type, link, options, callback )` Methods.
+This method make use of the `UserStore.checkUserEmail( email, options, callback )`, `UserStore.setUserMail( current_email, new_email, callback )` and `UserStore.getMailContent( type, link, options, callback )` Methods.
 
 ####Arguments:
 
 * **current_email** ( `String` ): The users email to find it in the db.
 * **new_email** ( `String` ): The new email to activate.
-* **[options]** ( `String|Number|Object` - *optional* ): Options to be used inside the `UserStore.getMailContent` method.
+* **[options]** ( `String|Number|Object` - *optional* ): Options to be used inside the `UserStore.getMailContent` and `UserStore.checkUserEmail` method.
 * **callback** ( `Function` ): The callback method.
 
 #### Parameter for `callback( error )`
@@ -323,7 +323,7 @@ This method make use of the `UserStore.setUserCredentials()` Method.
 
 * **token** ( `String` ): An existing token.
 * **password** ( `String`  - *not relevant for `changeMail` token*  ): The plain password to be crypted and used to generate the user .
-* **[options]** ( `String|Number|Object` - *optional* ): Options to be used inside the `UserStore.getMailContent` method. 
+* **[options]** ( `String|Number|Object` - *optional* ): Options to be used inside the `UserStore.getMailContent` and `UserStore.checkUserEmail` method. 
 * **callback** ( `Function` ): The callback method.
 
 #### Parameter for `callback( error, userData, tokenData )`
@@ -427,13 +427,14 @@ Get the users password and session data by email
 * **password** ( `String` ): The password crypted by `bcrypt`.
 * **userData** ( `String|Number|Object` ): Additional data you can use after a successful login to create your session.
 
-### `UserStore.checkUserEmail( email, callback )`
+### `UserStore.checkUserEmail( email, options, callback )`
 
 Check if a email is existent in your database.
 
 #### Arguments:
 
 * **email** ( `String` ): The email to find.
+* **options** ( `Any` ): The raw options data passed to `AuthApp.register()`, `AuthApp.forgot()` and `AuthApp.changeMail`. Intended to pass language data or other required information to your mail text generator.
 * **callback** ( `Function` ): The callback method.
 
 #### Parameter for `callback( error, exists )`
@@ -496,6 +497,7 @@ Get the content data for a mail.
 ## Release History
 |Version|Date|Description|
 |:--:|:--:|:--|
+|v0.3.1|2013-11-21|Added options to `UserStore.checkUserEmail( email, options, callback )`|
 |v0.3.0|2013-11-15|Deactivating mail service by setting `mailAppId = false`. Added `isRegister` argument to `UserStore.setUserCredentials`.|
 |v0.2.2|2013-11-04|Bugfix for debuggin config and fixed `example.js` to a woking version|
 |v0.2.1|2013-11-04|Fixed readme|
@@ -507,7 +509,6 @@ Get the content data for a mail.
 |Name|Description|
 |:--|:--|
 |[**tcs_node_mail_client**](https://github.com/mpneuried/tcs_mail_node_client)|Module to simply send mails by using the TCS mail Webservice (**node-tcs-de**)|
-|[**node-tcs-de**](https://github.com/smrchy/node.tcs.de)|Sends out an email via Amazon SES.|
 
 
 ## The MIT License (MIT)

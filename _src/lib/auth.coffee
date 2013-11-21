@@ -213,7 +213,7 @@ module.exports = class Auth extends require( "./basic" )
 			@_handleError( cb, "EMISSINGNEWMAIL", method: type )
 			return
 
-		@userstore.checkUserEmail email, ( err, exists )=>
+		@userstore.checkUserEmail email, options, ( err, exists )=>
 			if err
 				@_handleError( cb, err )
 				return
@@ -223,7 +223,7 @@ module.exports = class Auth extends require( "./basic" )
 				@_handleError( cb, "EMAILINVALID", email: email )
 				return
 
-			@userstore.checkUserEmail newemail, ( err, exists )=>
+			@userstore.checkUserEmail newemail, options, ( err, exists )=>
 				if err
 					@_handleError( cb, err )
 					return
@@ -274,7 +274,7 @@ module.exports = class Auth extends require( "./basic" )
 			@_handleError( cb, "EMISSINGMAIL", method: type )
 			return
 
-		@userstore.checkUserEmail email, ( err, exists )=>
+		@userstore.checkUserEmail email, options, ( err, exists )=>
 			if err
 				@_handleError( cb, err )
 				return
