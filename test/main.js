@@ -161,6 +161,9 @@
           testTokens[_mailTestR] = token;
           done();
         });
+        auth.once("mail", function(mail) {
+          mail.should.equal(_mailTestR);
+        });
         auth.register(_mailTestR, function(err) {
           should.not.exist(err);
         });
@@ -234,6 +237,9 @@
           testTokens[_mailTestF] = token;
           done();
         });
+        auth.once("mail", function(mail) {
+          mail.should.equal(_mailTestF);
+        });
         auth.forgot(_mailTestF, function(err, tokenData) {
           should.not.exist(err);
         });
@@ -243,6 +249,14 @@
           should.not.exist(err);
           should.exist(userData);
           userData.should.have.property("email")["with"].equal(_mailTestF);
+          done();
+        });
+      });
+      it("try activate forgotpassword a second time", function(done) {
+        auth.activate(testTokens[_mailTestF], "testpw", function(err, userData) {
+          should.exist(err);
+          should.exist(err.name);
+          err.name.should.equal("ETOKENNOTFOUND");
           done();
         });
       });
@@ -314,15 +328,33 @@
           testTokens[_mailTestCO] = token;
           done();
         });
+        auth.once("mail", function(newemail) {
+          newemail.should.equal(_mailTestCN);
+        });
         auth.changeMail(_mailTestCO, _mailTestCN, function(err, tokenData) {
           should.not.exist(err);
         });
       });
       it("activate changed mail", function(done) {
+        auth.once("activated", function(token, tokenData) {
+          tokenData.email.should.equal(_mailTestCO);
+          tokenData.newemail.should.equal(_mailTestCN);
+          done();
+        });
+        auth.once("mail", function(email) {
+          email.should.equal(_mailTestCO);
+        });
         auth.activate(testTokens[_mailTestCO], null, function(err, userData) {
           should.not.exist(err);
           should.exist(userData);
           userData.should.have.property("email")["with"].equal(_mailTestCN);
+        });
+      });
+      it("try activate change mail a second time", function(done) {
+        auth.activate(testTokens[_mailTestCO], null, function(err, userData) {
+          should.exist(err);
+          should.exist(err.name);
+          err.name.should.equal("ETOKENNOTFOUND");
           done();
         });
       });
@@ -376,11 +408,19 @@
           done();
         });
       });
-      it("activate", function(done) {
+      it("activate register", function(done) {
         auth.activate(testTokens[_mailTestR], "testpw", function(err, userData) {
           should.not.exist(err);
           should.exist(userData);
           userData.should.have.property("email")["with"].equal(_mailTestR);
+          done();
+        });
+      });
+      it("try activate register a second time", function(done) {
+        auth.activate(testTokens[_mailTestR], "testpw", function(err, userData) {
+          should.exist(err);
+          should.exist(err.name);
+          err.name.should.equal("ETOKENNOTFOUND");
           done();
         });
       });

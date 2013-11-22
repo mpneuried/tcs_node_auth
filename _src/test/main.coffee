@@ -164,6 +164,10 @@ describe "=== MAIN TESTS === ", ->
 				done()
 				return
 
+			auth.once "mail", ( mail )->
+				mail.should.equal( _mailTestR )
+				return
+
 			auth.register _mailTestR, ( err )->
 				should.not.exist( err )
 				return
@@ -249,6 +253,10 @@ describe "=== MAIN TESTS === ", ->
 				done()
 				return
 
+			auth.once "mail", ( mail )->
+				mail.should.equal( _mailTestF )
+				return
+
 			auth.forgot _mailTestF, ( err, tokenData )->
 				should.not.exist( err )
 				return
@@ -260,6 +268,15 @@ describe "=== MAIN TESTS === ", ->
 
 				should.exist( userData )
 				userData.should.have.property( "email" ).with.equal( _mailTestF )
+				done()
+				return
+			return
+
+		it "try activate forgotpassword a second time", ( done )->
+			auth.activate testTokens[ _mailTestF ], "testpw", ( err, userData )->
+				should.exist( err )
+				should.exist( err.name )
+				err.name.should.equal( "ETOKENNOTFOUND" )
 				done()
 				return
 			return
@@ -343,17 +360,40 @@ describe "=== MAIN TESTS === ", ->
 				done()
 				return
 
+			auth.once "mail", ( newemail )->
+				newemail.should.equal( _mailTestCN )
+				return
+
 			auth.changeMail _mailTestCO, _mailTestCN, ( err, tokenData )->
 				should.not.exist( err )
 				return
 			return
 
 		it "activate changed mail", ( done )->
+
+			auth.once "activated", ( token, tokenData )->
+				tokenData.email.should.equal( _mailTestCO )
+				tokenData.newemail.should.equal( _mailTestCN )
+				done()
+				return
+
+			auth.once "mail", ( email )->
+				email.should.equal( _mailTestCO )
+				return
+
 			auth.activate testTokens[ _mailTestCO ], null, ( err, userData )->
 				should.not.exist( err )
 
 				should.exist( userData )
 				userData.should.have.property( "email" ).with.equal( _mailTestCN )
+				return
+			return
+
+		it "try activate change mail a second time", ( done )->
+			auth.activate testTokens[ _mailTestCO ], null, ( err, userData )->
+				should.exist( err )
+				should.exist( err.name )
+				err.name.should.equal( "ETOKENNOTFOUND" )
 				done()
 				return
 			return
@@ -415,7 +455,7 @@ describe "=== MAIN TESTS === ", ->
 				return
 			return
 
-		it "activate", ( done )->
+		it "activate register", ( done )->
 			auth.activate testTokens[ _mailTestR ], "testpw", ( err, userData )->
 				should.not.exist( err )
 
@@ -425,7 +465,15 @@ describe "=== MAIN TESTS === ", ->
 				return
 			return
 
-			
+		it "try activate register a second time", ( done )->
+			auth.activate testTokens[ _mailTestR ], "testpw", ( err, userData )->
+				should.exist( err )
+				should.exist( err.name )
+				err.name.should.equal( "ETOKENNOTFOUND" )
+				done()
+				return
+			return
+
 		it "login for activated account", ( done )->
 			auth.login _mailTestR, "testpw", ( err, userData )->
 				should.not.exist( err )

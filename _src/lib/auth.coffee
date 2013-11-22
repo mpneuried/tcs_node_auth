@@ -146,18 +146,24 @@ module.exports = class Auth extends require( "./basic" )
 						cb( null, userData, tokenData )
 						return
 
-					@userstore.getMailContent "notifyoldmail", tokenData.newemail, options, ( err, mailData )=>
-						if err
+					@tokenStore.remove tokenData.email, ( err )=>
+						if err 
 							cb( err )
 							return
 
-						@emit "mail", tokenData.email, mailData, ( err )=>
+						@userstore.getMailContent "notifyoldmail", tokenData.newemail, options, ( err, mailData )=>
 							if err
 								cb( err )
 								return
-							@debug "created token `#{token}` of type `#{tokenData.type}` for mail `#{tokenData.email}`"
-							@emit "activated", token, tokenData
-							cb( null, userData, tokenData )
+
+							@emit "mail", tokenData.email, mailData, ( err )=>
+								if err
+									cb( err )
+									return
+								@debug "created token `#{token}` of type `#{tokenData.type}` for mail `#{tokenData.email}`"
+								@emit "activated", token, tokenData
+								cb( null, userData, tokenData )
+								return
 							return
 						return
 					return
@@ -180,6 +186,7 @@ module.exports = class Auth extends require( "./basic" )
 							cb( err )
 							return
 						@debug "activated mail `#{tokenData.email}` with token `#{token}`"
+						@emit "activated", token, tokenData
 						cb( null, userData )
 						return
 					return
