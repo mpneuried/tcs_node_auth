@@ -221,6 +221,7 @@ to create the AuthApp call `new` with the configuared `UserStore` and the module
 
 * **bryptrounds** ( `Number` - *optional; default = `8`* ): The crypto strength. A higher number will cause 
 * **tokentimeout** ( `Number` - *optional; default = `604800` 7 days* ): Time in seconds until the token will expire. `0` for unlimited
+* **emailForceLowercase** ( `Boolean` - *optional; default = `true`* ): All emails will be forced to lowercase
 * **namespace** ( `String` - *optional; default = `tcsnodeauth`* ): The **redis** namespace to prefix all generated data.
 * **redis** ( `Object|RedisClient` ): The **redis** configuration. Could be an Object of Configuration or a allready existing instance of `RedisClient`.
 	* **host** ( `String` - *optional; default = `127.0.0.1`* ): The redis hostname
@@ -497,6 +498,7 @@ Get the content data for a mail.
 ## Release History
 |Version|Date|Description|
 |:--:|:--:|:--|
+|v0.4.0|2013-12-16|Option to force emails to lowercase.|
 |v0.3.3|2013-11-22|Fixed token clear after changemail + added some testcases|
 |v0.3.2|2013-11-21|Fixed token-mail receiver in changemail method|
 |v0.3.1|2013-11-21|Added options to `UserStore.checkUserEmail( email, options, callback )`|

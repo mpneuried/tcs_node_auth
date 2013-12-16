@@ -157,12 +157,12 @@
       });
       return it("register", function(done) {
         auth.once("register", function(token, email) {
-          email.should.equal(_mailTestR);
+          email.should.equal(_mailTestR.toLowerCase());
           testTokens[_mailTestR] = token;
           done();
         });
         auth.once("mail", function(mail) {
-          mail.should.equal(_mailTestR);
+          mail.should.equal(_mailTestR.toLowerCase());
         });
         auth.register(_mailTestR, function(err) {
           should.not.exist(err);
@@ -198,7 +198,7 @@
         auth.getToken(testTokens[_mailTestR], function(err, tokenData) {
           should.not.exist(err);
           should.exist(tokenData);
-          tokenData.should.have.property("email")["with"].equal(_mailTestR);
+          tokenData.should.have.property("email")["with"].equal(_mailTestR.toLowerCase());
           tokenData.should.have.property("type")["with"].equal("register");
           tokenData.should.have.property("time")["with"].have.type("number");
           done();
@@ -412,7 +412,7 @@
         auth.activate(testTokens[_mailTestR], "testpw", function(err, userData) {
           should.not.exist(err);
           should.exist(userData);
-          userData.should.have.property("email")["with"].equal(_mailTestR);
+          userData.should.have.property("email")["with"].equal(_mailTestR.toLowerCase());
           done();
         });
       });
@@ -428,7 +428,7 @@
         auth.login(_mailTestR, "testpw", function(err, userData) {
           should.not.exist(err);
           should.exist(userData);
-          userData.email.should.equal(_mailTestR);
+          userData.email.should.equal(_mailTestR.toLowerCase());
           done();
         });
       });

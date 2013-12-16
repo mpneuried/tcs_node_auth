@@ -159,13 +159,13 @@ describe "=== MAIN TESTS === ", ->
 		it "register", ( done )->
 
 			auth.once "register", ( token, email )->
-				email.should.equal( _mailTestR )
+				email.should.equal( _mailTestR.toLowerCase() )
 				testTokens[ _mailTestR ] = token
 				done()
 				return
 
 			auth.once "mail", ( mail )->
-				mail.should.equal( _mailTestR )
+				mail.should.equal( _mailTestR.toLowerCase() )
 				return
 
 			auth.register _mailTestR, ( err )->
@@ -207,7 +207,7 @@ describe "=== MAIN TESTS === ", ->
 				should.not.exist( err )
 
 				should.exist( tokenData )
-				tokenData.should.have.property( "email" ).with.equal( _mailTestR )
+				tokenData.should.have.property( "email" ).with.equal( _mailTestR.toLowerCase() )
 				tokenData.should.have.property( "type" ).with.equal( "register" )
 				tokenData.should.have.property( "time" ).with.have.type( "number" ) 
 				done()
@@ -460,7 +460,7 @@ describe "=== MAIN TESTS === ", ->
 				should.not.exist( err )
 
 				should.exist( userData )
-				userData.should.have.property( "email" ).with.equal( _mailTestR )
+				userData.should.have.property( "email" ).with.equal( _mailTestR.toLowerCase() )
 				done()
 				return
 			return
@@ -479,7 +479,7 @@ describe "=== MAIN TESTS === ", ->
 				should.not.exist( err )
 				
 				should.exist( userData )
-				userData.email.should.equal( _mailTestR )
+				userData.email.should.equal( _mailTestR.toLowerCase() )
 				done()
 				return
 			return

@@ -11,6 +11,7 @@ module.exports = class Auth extends require( "./basic" )
 	defaults: =>
 		return @extend true, {}, super,
 			bryptrounds: 8
+			emailForceLowercase: true
 			mailAppId: null
 			mailConfig: null
 			redis: null
@@ -79,6 +80,9 @@ module.exports = class Auth extends require( "./basic" )
 		if not email?.length
 			@_handleError( cb, "EMISSINGMAIL", method: "login" )
 			return
+		else if @config.emailForceLowercase
+			email = email.toLowerCase()
+
 		if not password?.length
 			@_handleError( cb, "EMISSINGPASSWORD", method: "login")
 			return
@@ -215,10 +219,14 @@ module.exports = class Auth extends require( "./basic" )
 		if not email?.length
 			@_handleError( cb, "EMISSINGMAIL", method: type )
 			return
+		else if @config.emailForceLowercase
+			email = email.toLowerCase()
 
 		if not newemail?.length
 			@_handleError( cb, "EMISSINGNEWMAIL", method: type )
 			return
+		else if @config.emailForceLowercase
+			newemail = newemail.toLowerCase()
 
 		@userstore.checkUserEmail email, options, ( err, exists )=>
 			if err
@@ -280,6 +288,8 @@ module.exports = class Auth extends require( "./basic" )
 		if not email?.length
 			@_handleError( cb, "EMISSINGMAIL", method: type )
 			return
+		else if @config.emailForceLowercase
+			email = email.toLowerCase()
 
 		@userstore.checkUserEmail email, options, ( err, exists )=>
 			if err
